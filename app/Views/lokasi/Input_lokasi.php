@@ -1,3 +1,6 @@
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <div class="row">
     <div class="col-sm-8">
         <div id="map" style="width: 100%; height: 70vh;"></div>
@@ -5,23 +8,23 @@
 
     <div class="col-sm-4">
         <div class="row">
-            <?php echo form_open_multipart ('lokasi/insertData'); ?>
+            <?= form_open_multipart('lokasi/insertData'); ?>
 
             <div class="form-group">
                 <label>Nama Lokasi</label>
-                <input class="form-control" name="nama_lokasi">
+                <input class="form-control" name="nama_lokasi" value="<?= old('nama_lokasi'); ?>">
                 <p class="text-danger"><?= validation_show_error('nama_lokasi'); ?></p>
             </div>
 
             <div class="form-group">
                 <label>Latitude</label>
-                <input class="form-control" name="latitude" id="latitude">
+                <input class="form-control" name="latitude" id="latitude" value="<?= old('latitude'); ?>">
                 <p class="text-danger"><?= validation_show_error('latitude'); ?></p>
             </div>
 
             <div class="form-group">
                 <label>Longitude</label>
-                <input class="form-control" name="longitude" id="longitude">
+                <input class="form-control" name="longitude" id="longitude" value="<?= old('longitude'); ?>">
                 <p class="text-danger"><?= validation_show_error('longitude'); ?></p>
             </div>
 
@@ -35,11 +38,34 @@
                 <button type="reset" class="btn btn-success">Reset</button>
             </div>
 
-            <?php echo form_close(); ?>
+            <?= form_close(); ?>
         </div>
     </div>
 </div>
 
+<!-- SweetAlert Flash Message -->
+<script>
+    <?php if(session()->getFlashdata('success')): ?>
+        Swal.fire({
+            icon: 'success',
+            title: 'Berhasil!',
+            text: '<?= session()->getFlashdata('success') ?>',
+            timer: 3000,
+            showConfirmButton: false
+        });
+    <?php endif; ?>
+
+    <?php if(session()->getFlashdata('errors')): ?>
+        Swal.fire({
+            icon: 'error',
+            title: 'Gagal!',
+            html: `<?= implode('<br>', array_map('esc', session()->getFlashdata('errors'))) ?>`,
+            confirmButtonText: 'Oke'
+        });
+    <?php endif; ?>
+</script>
+
+<!-- Leaflet Map -->
 <script>
     var petaOSM = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors'
@@ -61,14 +87,12 @@
         attribution: '&copy; Esri & Contributors'
     });
 
-    // Inisialisasi Peta dengan peta satelit sebagai default
     var map = L.map('map', {
         center: [-5.4, 104.5683],
         zoom: 9,
-        layers: [petaGoogleSat] // Peta Satelit sebagai default
+        layers: [petaGoogleSat]
     });
 
-    // Opsi Basemap
     var baseMaps = {
         "OpenStreetMap": petaOSM,
         "Topographic Map": petaSat,
@@ -77,28 +101,25 @@
         "ESRI World Imagery": petaEsri,
     };
 
-    // Tambahkan Layer Control ke Peta
     L.control.layers(baseMaps).addTo(map);
 
     var curLocation = [-5.4, 104.5683];
 
-var marker = L.marker(curLocation, { draggable: true }).addTo(map);
+    var marker = L.marker(curLocation, { draggable: true }).addTo(map);
 
-function updateLatLng(position) {
-    document.getElementById("latitude").value = position.lat;
-    document.getElementById("longitude").value = position.lng;
-}
+    function updateLatLng(position) {
+        document.getElementById("latitude").value = position.lat;
+        document.getElementById("longitude").value = position.lng;
+    }
 
-marker.on('dragend', function(e) {
-    updateLatLng(marker.getLatLng());
-});
+    marker.on('dragend', function(e) {
+        updateLatLng(marker.getLatLng());
+    });
 
-map.on('click', function(e) {
-    marker.setLatLng(e.latlng).openPopup();
-    updateLatLng(e.latlng);
-});
+    map.on('click', function(e) {
+        marker.setLatLng(e.latlng).openPopup();
+        updateLatLng(e.latlng);
+    });
 
-// Set nilai awal pada hidden input
-updateLatLng(curLocation);
-
+    updateLatLng(curLocation);
 </script>
